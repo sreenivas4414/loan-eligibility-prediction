@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign AI // Zenith Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* THEME COLOR PALETTES - RE-CENTERED ON ORANGE/AMBER */
+        :root[data-theme="dark"] {
+            --primary: #f59e0b;        /* Amber Orange */
+            --primary-hover: #d97706;
+            --accent: #10b981;         
+            --danger: #ef4444;         
+            --bg-base: #0f172a;        
+            --bg-panel: rgba(15, 23, 42, 0.85);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(245, 158, 11, 0.2);
+            --input-bg: rgba(2, 6, 23, 0.7);
+            --overlay: rgba(15, 23, 42, 0.85);
+        }
+
+        :root[data-theme="light"] {
+            --primary: #ea580c;        /* Deeper Orange for readability */
+            --primary-hover: #c2410c;
+            --accent: #059669;
+            --danger: #dc2626;
+            --bg-base: #f8fafc;        
+            --bg-panel: rgba(255, 255, 255, 0.9);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: rgba(234, 88, 12, 0.2);
+            --input-bg: #ffffff;
+            --overlay: rgba(241, 245, 249, 0.92);
+        }
+
+        * { box-sizing: border-box; transition: background 0.3s ease, color 0.3s ease, border 0.3s ease; }
+
+        body {
+            margin: 0; padding: 0;
+            /* NEAT BACKGROUND: High-end Modern Glass Office Architecture */
+            background: linear-gradient(var(--overlay), var(--overlay)), 
+                        url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text-main); font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+
+        .theme-toggle {
+            position: fixed; top: 25px; left: 25px; z-index: 1000;
+            padding: 10px 18px; border-radius: 8px; cursor: pointer;
+            background: var(--bg-panel); color: var(--primary);
+            border: 1px solid var(--primary); font-family: 'Orbitron';
+            font-size: 0.65rem; font-weight: bold; letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .main-container {
+            width: 95%; max-width: 1250px;
+            display: grid; grid-template-columns: 1.3fr 0.7fr;
+            gap: 30px; padding: 20px;
+        }
+
+        .hud-panel {
+            background: var(--bg-panel); backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 12px;
+            padding: 40px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .header-title {
+            font-family: 'Orbitron', sans-serif; font-size: 1.6rem; font-weight: 900;
+            letter-spacing: 3px; margin-bottom: 35px; color: var(--primary);
+            text-transform: uppercase; border-left: 5px solid var(--primary); padding-left: 15px;
+        }
+
+        .input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .field-group { display: flex; flex-direction: column; gap: 8px; }
+        .field-group label { font-family: 'Orbitron'; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; }
+
+        .field-group input, .field-group select {
+            background: var(--input-bg); border: 1px solid var(--border);
+            padding: 14px; color: var(--text-main); border-radius: 6px;
+            outline: none; font-weight: 500; font-family: 'Rajdhani';
+        }
+
+        .field-group input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+
+        .full-width { grid-column: span 2; }
+
+        .btn-analyze {
+            grid-column: span 2; background: var(--primary);
+            color: #000; padding: 18px; border: none; border-radius: 8px;
+            font-family: 'Orbitron'; font-weight: 900; cursor: pointer; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        .btn-analyze:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3); }
+
+        /* GAUGE & RISK METER */
+        .barometer-hub { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        
+        .gauge-outer { width: 280px; height: 140px; position: relative; overflow: hidden; border-bottom: 4px solid var(--border); }
+        .gauge-fill {
+            width: 100%; height: 200%; border-radius: 50%; border: 22px solid var(--primary);
+            border-bottom-color: transparent; border-left-color: transparent;
+            position: absolute; top: 0; left: 0;
+            transform: rotate(calc(0.5turn + ({{ (rate or 0) / 20 }} * 0.5turn)));
+            transition: transform 2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .rate-display { font-family: 'Orbitron'; font-size: 4rem; font-weight: 900; color: var(--primary); margin-top: 10px; }
+
+        .risk-container { width: 100%; margin-top: 20px; background: var(--input-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
+        .risk-label-row { display: flex; justify-content: space-between; font-family: 'Orbitron'; font-size: 0.65rem; margin-bottom: 10px; font-weight: bold; }
+        .risk-bar-bg { width: 100%; height: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; overflow: hidden; }
+        .risk-bar-fill { height: 100%; transition: width 2s ease-out; border-radius: 5px; }
+
+        .btn-pdf {
+            display: block; margin-top: 20px; padding: 15px; background: var(--text-main); color: var(--bg-base);
+            text-decoration: none; border-radius: 8px; font-family: 'Orbitron'; font-weight: bold; font-size: 0.75rem; transition: 0.3s; text-align: center;
+        }
+        .btn-pdf:hover { opacity: 0.9; transform: scale(1.02); }
+
+        .dashboard-link {
+            position: fixed; top: 25px; right: 40px; color: var(--primary);
+            text-decoration: none; font-family: 'Orbitron'; font-size: 0.75rem; font-weight: bold;
+            border: 1px solid var(--primary); padding: 10px 20px; border-radius: 8px; background: transparent; transition: 0.3s;
+        }
+        .dashboard-link:hover { background: var(--primary); color: #000; }
+
+        .status-text { font-family: 'Orbitron'; font-weight: 900; letter-spacing: 2px; margin: 15px 0; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓 MODE: DARK</button>
+    <a href="/dashboard" class="dashboard-link">VIEW ANALYTICS</a>
+
+    <div class="main-container">
+        <div class="hud-panel">
+            <div class="header-title">Loan Intelligence</div>
+            
+            <form action="/predict" method="POST" class="input-grid">
+                <div class="field-group">
+                    <label>Applicant Age</label>
+                    <input type="number" name="age" required placeholder="Ex: 28">
+                </div>
+                <div class="field-group">
+                    <label>Loan Asset Type</label>
+                    <select name="loan_type">
+                        <option>Education Loan</option>
+                        <option>Home Loan</option>
+                        <option>Car Loan</option>
+                        <option>Gold Loan</option>
+                        <option>Personal Loan</option>
+                        <option>Business Loan</option>
+                        <option>Medical Loan</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>Co-Applicant Name</label>
+                    <input type="text" name="co_applicant_name" placeholder="Full Name" required>
+                </div>
+                <div class="field-group">
+                    <label>Co-App Annual Income (₹)</label>
+                    <input type="number" name="co_applicant_annual_income" placeholder="0" required>
+                </div>
+                <div class="field-group">
+                    <label>Your Annual Income (₹)</label>
+                    <input type="number" name="annual_income" placeholder="0" required>
+                </div>
+                <div class="field-group">
+                    <label>CIBIL Credit Score</label>
+                    <input type="number" name="cibil" placeholder="300 - 900" required>
+                </div>
+                <div class="field-group">
+                    <label>Education Level</label>
+                    <select name="education">
+                        <option>Graduate</option>
+                        <option>Undergrad</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>Housing Status</label>
+                    <select name="house_type">
+                        <option>Owned</option>
+                        <option>Rental</option>
+                        <option>Mortgaged</option>
+                    </select>
+                </div>
+                <div class="field-group full-width">
+                    <label>Desired Loan Principle (INR)</label>
+                    <input type="number" name="loan_amount" placeholder="Enter Amount" required>
+                </div>
+                <input type="hidden" name="gender" value="Male">
+                <button type="submit" class="btn-analyze">Process Application</button>
+            </form>
+        </div>
+
+        <div class="hud-panel barometer-hub">
+            <label style="font-family:'Orbitron'; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 20px; font-weight: bold;">INTEREST RATE CALIBRATION</label>
+            
+            <div class="gauge-outer">
+                <div class="gauge-fill"></div>
+            </div>
+            
+            <div class="rate-display">{{ rate or '0.0' }}%</div>
+            
+            <div class="status-text" style="color: {{ 'var(--accent)' if result == 'ELIGIBLE' else 'var(--danger)' if result else 'var(--text-muted)' }};">
+                {{ result or 'AWAITING SCAN' }}
+            </div>
+
+            {% if result %}
+                <div class="risk-container">
+                    {% set cibil_val = cibil_score if cibil_score else 300 %}
+                    {% set risk_score = 100 - ((cibil_val - 300) / 600 * 100) %}
+                    <div class="risk-label-row">
+                        <span>RISK INDEX</span>
+                        <span style="color: {{ 'var(--danger)' if risk_score > 60 else 'var(--primary)' if risk_score > 30 else 'var(--accent)' }}">
+                            {{ risk_score|int }}% {{ 'HIGH' if risk_score > 60 else 'MID' if risk_score > 30 else 'LOW' }}
+                        </span>
+                    </div>
+                    <div class="risk-bar-bg">
+                        <div class="risk-bar-fill" style="width: {{ risk_score }}%; background: {{ 'var(--danger)' if risk_score > 60 else 'var(--primary)' if risk_score > 30 else 'var(--accent)' }}"></div>
+                    </div>
+                    <div style="font-family:'Orbitron'; font-size: 0.55rem; color: var(--text-muted); margin-top: 15px; text-align: left;">
+                        AI_CONFIDENCE: {{ (100 - risk_score)|int }}%
+                    </div>
+                </div>
+
+                {% if result == 'ELIGIBLE' %}
+                    <div style="margin-top: 20px;">
+                        <label style="font-size: 0.6rem; color: var(--text-muted); font-family: 'Orbitron';">ESTIMATED MONTHLY EMI</label>
+                        <div style="font-size: 2.2rem; color: var(--text-main); font-weight: 700;">₹{{ "{:,.0f}".format(emi) }}</div>
+                    </div>
+                    <a href="/download_cert/{{ app_id }}" class="btn-pdf">DOWNLOAD CERTIFICATE</a>
+                {% else %}
+                    <div style="color: var(--danger); font-size: 0.85rem; padding: 15px; border: 1px solid var(--danger); border-radius: 10px; margin-top: 10px; font-weight: bold;">
+                        THRESHOLD EXCEEDED: APPLICATION DENIED
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeBtn');
+            const current = html.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', target);
+            btn.innerText = target === 'dark' ? '🌓 MODE: DARK' : '🌞 MODE: LIGHT';
+            localStorage.setItem('loan_theme', target);
+        }
+
+        const savedTheme = localStorage.getItem('loan_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('themeBtn').innerText = savedTheme === 'dark' ? '🌓 MODE: DARK' : '🌞 MODE: LIGHT';
+    </script>
+</body>
+</html>
