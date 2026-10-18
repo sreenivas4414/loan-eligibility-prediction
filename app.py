@@ -69,9 +69,10 @@ def predict():
         # Scale for AI Model (Monthly calculation as per your logic)
         m_inc = annual_inc / 12
         m_co_inc = co_annual_inc / 12
-        # Input features for your specific model
-        ai_input = [1, 1, 0, 1, 0, m_inc, m_co_inc, (loan_amt/1000), 360, 1.0, 2]
+
+        ai_input = [1, 1, 0, 1, 0, m_inc, m_co_inc, (loan_amt/1000), 360, 1.0, 2]    
         prediction = model.predict([np.array(ai_input)])[0]
+
 
         # Business Eligibility Logic
         if l_type == "Education Loan":
